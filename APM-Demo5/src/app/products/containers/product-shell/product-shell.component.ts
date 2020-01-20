@@ -5,6 +5,9 @@ import { Observable } from 'rxjs';
 import * as fromProduct from './../../state';
 import * as productActions from './../../state/product.actions';
 import { Product } from '../../product';
+import {ProductActionsService} from '../../action-driven-state/product-actions.service';
+import * as productActions2 from './../../action-driven-state/product-actions.service';
+import {ProductStoreService} from '../../action-driven-state/product-store.service';
 
 @Component({
   templateUrl: './product-shell.component.html',
@@ -15,15 +18,24 @@ export class ProductShellComponent implements OnInit {
   selectedProduct$: Observable<Product>;
   products$: Observable<Product[]>;
   errorMessage$: Observable<string>;
+  test$: Observable<boolean>;
 
-  constructor(private store: Store<fromProduct.State>) {}
+  constructor(
+    private store: Store<fromProduct.State>,
+    private productStoreService: ProductStoreService,
+    private productActionsService: ProductActionsService
+  ) {}
 
   ngOnInit(): void {
-    this.store.dispatch(new productActions.Load());
-    this.products$ = this.store.pipe(select(fromProduct.getProducts));
+    // this.store.dispatch(new productActions.Load());
+    this.productActionsService.dispatch(new productActions2.Load());
+    // this.products$ = this.store.pipe(select(fromProduct.getProducts));
+    this.products$ = this.productStoreService.products$;
     this.errorMessage$ = this.store.pipe(select(fromProduct.getError));
     this.selectedProduct$ = this.store.pipe(select(fromProduct.getCurrentProduct));
     this.displayCode$ = this.store.pipe(select(fromProduct.getShowProductCode));
+
+    this.test$ = this.productStoreService.showProductCode$;
   }
 
   checkChanged(value: boolean): void {
@@ -51,5 +63,9 @@ export class ProductShellComponent implements OnInit {
 
   updateProduct(product: Product): void {
     this.store.dispatch(new productActions.UpdateProduct(product));
+  }
+
+  test() {
+    this.productActionsService.dispatch(new productActions2.ToggleProductCode(false));
   }
 }
