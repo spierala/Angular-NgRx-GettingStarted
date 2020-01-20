@@ -3,7 +3,7 @@ import {ProductActionsService} from './product-actions.service';
 import {map, scan, share, tap} from 'rxjs/operators';
 import {merge, Observable} from 'rxjs';
 import {ProductEffectsService} from './product-effects.service';
-import {initialState, ProductState, reducer} from '../state/product.reducer';
+import {ProductState, reducer} from '../state/product.reducer';
 import {ProductActions} from '../state/product.actions';
 
 @Injectable({
@@ -16,7 +16,7 @@ export class ProductStoreService {
     this.productEffectsService.effects$
   ).pipe(
     tap((action => console.log('Action', action.type, action.payload))),
-    scan<any>(reducer, initialState),
+    scan<any>(reducer),
     share()
   );
 
