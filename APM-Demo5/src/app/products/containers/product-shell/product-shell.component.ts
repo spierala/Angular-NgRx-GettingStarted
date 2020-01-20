@@ -2,7 +2,6 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import * as productActions from './../../state/product.actions';
 import {Product} from '../../product';
-import {ProductActionsService} from '../../action-driven-state/product-actions.service';
 import {ProductStoreService} from '../../action-driven-state/product-store.service';
 
 @Component({
@@ -16,12 +15,11 @@ export class ProductShellComponent implements OnInit {
   errorMessage$: Observable<string>;
 
   constructor(
-    private productStoreService: ProductStoreService,
-    private productActionsService: ProductActionsService
+    private productStoreService: ProductStoreService
   ) {}
 
   ngOnInit(): void {
-    this.productActionsService.dispatch(new productActions.Load());
+    this.productStoreService.dispatch(new productActions.Load());
     this.products$ = this.productStoreService.products$;
     this.errorMessage$ = this.productStoreService.errorMessage$;
     this.selectedProduct$ = this.productStoreService.currentProduct$;
@@ -29,29 +27,29 @@ export class ProductShellComponent implements OnInit {
   }
 
   checkChanged(value: boolean): void {
-    this.productActionsService.dispatch(new productActions.ToggleProductCode(value));
+    this.productStoreService.dispatch(new productActions.ToggleProductCode(value));
   }
 
   newProduct(): void {
-    this.productActionsService.dispatch(new productActions.InitializeCurrentProduct());
+    this.productStoreService.dispatch(new productActions.InitializeCurrentProduct());
   }
 
   productSelected(product: Product): void {
-    this.productActionsService.dispatch(new productActions.SetCurrentProduct(product));
+    this.productStoreService.dispatch(new productActions.SetCurrentProduct(product));
   }
 
   deleteProduct(product: Product): void {
-    this.productActionsService.dispatch(new productActions.DeleteProduct(product.id));
+    this.productStoreService.dispatch(new productActions.DeleteProduct(product.id));
   }
 
   clearProduct(): void {
-    this.productActionsService.dispatch(new productActions.ClearCurrentProduct());
+    this.productStoreService.dispatch(new productActions.ClearCurrentProduct());
   }
   saveProduct(product: Product): void {
-    this.productActionsService.dispatch(new productActions.CreateProduct(product));
+    this.productStoreService.dispatch(new productActions.CreateProduct(product));
   }
 
   updateProduct(product: Product): void {
-    this.productActionsService.dispatch(new productActions.UpdateProduct(product));
+    this.productStoreService.dispatch(new productActions.UpdateProduct(product));
   }
 }

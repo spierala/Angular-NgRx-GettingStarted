@@ -4,6 +4,7 @@ import {map, scan, share, tap} from 'rxjs/operators';
 import {merge, Observable} from 'rxjs';
 import {ProductEffectsService} from './product-effects.service';
 import {initialState, ProductState, reducer} from '../state/product.reducer';
+import {ProductActions} from '../state/product.actions';
 
 @Injectable({
   providedIn: 'root'
@@ -18,13 +19,6 @@ export class ProductStoreService {
     scan<any>(reducer, initialState),
     share()
   );
-
-  constructor(
-    private productActionsService: ProductActionsService,
-    private productEffectsService: ProductEffectsService
-  ) {
-    this.state$.subscribe();
-  }
 
   products$ = this.state$.pipe(
     map(state => state.products)
@@ -53,4 +47,13 @@ export class ProductStoreService {
       }
     })
   );
+
+  constructor(
+    private productActionsService: ProductActionsService,
+    private productEffectsService: ProductEffectsService
+  ) {
+    this.state$.subscribe();
+  }
+
+  dispatch = (action: ProductActions) => this.productActionsService.dispatch(action);
 }
