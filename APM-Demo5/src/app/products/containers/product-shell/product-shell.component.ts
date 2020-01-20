@@ -1,12 +1,8 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Store, select } from '@ngrx/store';
-import { Observable } from 'rxjs';
-
-import * as fromProduct from './../../state';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {Observable} from 'rxjs';
 import * as productActions from './../../state/product.actions';
-import { Product } from '../../product';
+import {Product} from '../../product';
 import {ProductActionsService} from '../../action-driven-state/product-actions.service';
-import * as productActions2 from './../../action-driven-state/product-actions.service';
 import {ProductStoreService} from '../../action-driven-state/product-store.service';
 
 @Component({
@@ -18,54 +14,44 @@ export class ProductShellComponent implements OnInit {
   selectedProduct$: Observable<Product>;
   products$: Observable<Product[]>;
   errorMessage$: Observable<string>;
-  test$: Observable<boolean>;
 
   constructor(
-    private store: Store<fromProduct.State>,
     private productStoreService: ProductStoreService,
     private productActionsService: ProductActionsService
   ) {}
 
   ngOnInit(): void {
-    // this.store.dispatch(new productActions.Load());
-    this.productActionsService.dispatch(new productActions2.Load());
-    // this.products$ = this.store.pipe(select(fromProduct.getProducts));
+    this.productActionsService.dispatch(new productActions.Load());
     this.products$ = this.productStoreService.products$;
-    this.errorMessage$ = this.store.pipe(select(fromProduct.getError));
-    this.selectedProduct$ = this.store.pipe(select(fromProduct.getCurrentProduct));
-    this.displayCode$ = this.store.pipe(select(fromProduct.getShowProductCode));
-
-    this.test$ = this.productStoreService.showProductCode$;
+    this.errorMessage$ = this.productStoreService.errorMessage$;
+    this.selectedProduct$ = this.productStoreService.currentProduct$;
+    this.displayCode$ = this.productStoreService.showProductCode$;
   }
 
   checkChanged(value: boolean): void {
-    this.store.dispatch(new productActions.ToggleProductCode(value));
+    this.productActionsService.dispatch(new productActions.ToggleProductCode(value));
   }
 
   newProduct(): void {
-    this.store.dispatch(new productActions.InitializeCurrentProduct());
+    this.productActionsService.dispatch(new productActions.InitializeCurrentProduct());
   }
 
   productSelected(product: Product): void {
-    this.store.dispatch(new productActions.SetCurrentProduct(product));
+    this.productActionsService.dispatch(new productActions.SetCurrentProduct(product));
   }
 
   deleteProduct(product: Product): void {
-    this.store.dispatch(new productActions.DeleteProduct(product.id));
+    this.productActionsService.dispatch(new productActions.DeleteProduct(product.id));
   }
 
   clearProduct(): void {
-    this.store.dispatch(new productActions.ClearCurrentProduct());
+    this.productActionsService.dispatch(new productActions.ClearCurrentProduct());
   }
   saveProduct(product: Product): void {
-    this.store.dispatch(new productActions.CreateProduct(product));
+    this.productActionsService.dispatch(new productActions.CreateProduct(product));
   }
 
   updateProduct(product: Product): void {
-    this.store.dispatch(new productActions.UpdateProduct(product));
-  }
-
-  test() {
-    this.productActionsService.dispatch(new productActions2.ToggleProductCode(false));
+    this.productActionsService.dispatch(new productActions.UpdateProduct(product));
   }
 }

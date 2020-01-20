@@ -1,65 +1,46 @@
 import {Injectable} from '@angular/core';
-import {ProductActions2, ProductActionsService, ProductActionTypes2} from './product-actions.service';
-import {map, tap, withLatestFrom} from 'rxjs/operators';
-import {BehaviorSubject, merge} from 'rxjs';
-import {Product} from '../product';
+import {ProductActionsService} from './product-actions.service';
+import {map, scan, share, tap} from 'rxjs/operators';
+import {merge, Observable} from 'rxjs';
 import {ProductEffectsService} from './product-effects.service';
+import {initialState, ProductState, reducer} from '../state/product.reducer';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductStoreService {
 
-  private showProductCodeSource: BehaviorSubject<boolean> = new BehaviorSubject(true);
-  private currentProductIdSource: BehaviorSubject<number | null> = new BehaviorSubject(null);
-  private productsSource: BehaviorSubject<Product[]> = new BehaviorSubject([]);
-  private errorSource: BehaviorSubject<string> = new BehaviorSubject('');
+  private state$: Observable<ProductState> = merge(
+    this.productActionsService.actions$,
+    this.productEffectsService.effects$
+  ).pipe(
+    tap((action => console.log('Action', action.type, action.payload))),
+    scan<any>(reducer, initialState),
+    share()
+  );
 
   constructor(
     private productActionsService: ProductActionsService,
     private productEffectsService: ProductEffectsService
   ) {
-    merge(
-      this.productActionsService.actions$,
-      this.productEffectsService.effects$
-    ).pipe(
-      tap((action: ProductActions2) => {
-        switch (action.type) {
-          case ProductActionTypes2.ToggleProductCode:
-            return this.showProductCodeSource.next(action.payload);
-            break;
-
-          case ProductActionTypes2.SetCurrentProduct:
-            this.currentProductIdSource.next(action.payload.id);
-            break;
-
-          case ProductActionTypes2.LoadSuccess:
-            this.productsSource.next(action.payload);
-            break;
-
-          case ProductActionTypes2.LoadFail:
-            this.productsSource.next([]);
-            this.errorSource.next(action.payload);
-            break;
-        }
-      })
-    ).subscribe();
+    this.state$.subscribe();
   }
 
-  // Public Select State
-  showProductCode$ = this.showProductCodeSource.asObservable();
+  products$ = this.state$.pipe(
+    map(state => state.products)
+  );
 
-  // showProductCode$ = this.productActionsService.actions$.pipe(
-  //   filter(action => action.type === ProductActionTypes2.ToggleProductCode),
-  //   map((action: ToggleProductCode) => action.payload)
-  // );
+  showProductCode$ = this.state$.pipe(
+    map(state => state.showProductCode)
+  );
 
-  products$ = this.productsSource.asObservable();
+  errorMessage$ = this.state$.pipe(
+    map(state => state.error)
+  );
 
-  currentProduct$ = this.currentProductIdSource.pipe(
-    withLatestFrom(this.productsSource),
-    map(([currentProductId, products]) => {
-      if (currentProductId === 0) {
+  currentProduct$ = this.state$.pipe(
+    map((state) => {
+      if (state.currentProductId === 0) {
         return {
           id: 0,
           productName: '',
@@ -68,7 +49,7 @@ export class ProductStoreService {
           starRating: 0
         };
       } else {
-        return currentProductId ? products.find(p => p.id === currentProductId) : null;
+        return state.currentProductId ? state.products.find(p => p.id === state.currentProductId) : null;
       }
     })
   );

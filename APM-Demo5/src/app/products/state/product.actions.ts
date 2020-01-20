@@ -43,7 +43,7 @@ export class InitializeCurrentProduct implements Action {
   readonly type = ProductActionTypes.InitializeCurrentProduct;
 }
 
-export class Load implements Action {
+export class Load {
   readonly type = ProductActionTypes.Load;
 }
 
