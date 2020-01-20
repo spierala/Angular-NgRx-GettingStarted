@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { catchError, filter, map, mergeMap } from 'rxjs/operators';
-import { merge, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { ProductState, reducer } from '../state/product.reducer';
 import * as productActions from '../state/product.actions';
 import { ProductActions, ProductActionTypes } from '../state/product.actions';
@@ -86,17 +86,16 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
     )
   );
 
-  effects$: Observable<ProductActions> = merge(
-    this.loadProducts$,
-    this.updateProduct$,
-    this.createProduct$,
-    this.deleteProduct$
-  );
-
   constructor(
     private productService: ProductService
   ) {
       super();
-      this.init(reducer, this.effects$);
+      this.init(reducer, [
+        // Effects
+        this.loadProducts$,
+        this.updateProduct$,
+        this.createProduct$,
+        this.deleteProduct$
+      ]);
   }
 }

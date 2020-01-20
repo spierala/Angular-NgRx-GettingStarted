@@ -1,7 +1,7 @@
 import { merge, Observable, Subject } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 
-export class MiniStore<StateType, ActionType extends {type: string}> {
+export class MiniStore<StateType, ActionType extends {type: string, payload: any}> {
   private actionsSource: Subject<ActionType> = new Subject();
   actions$: Observable<ActionType> = this.actionsSource.asObservable();
 
@@ -14,13 +14,13 @@ export class MiniStore<StateType, ActionType extends {type: string}> {
 
   dispatch = (action: ActionType) => this.actionsSource.next(action);
 
-  init(reducer: (state: StateType, action: ActionType) => StateType, effects$?: Observable<any>) {
-
-    const actions$: Observable<ActionType> = effects$ ? merge(this.actions$, effects$) : this.actions$;
-
-    actions$.pipe(
+  init(
+    reducer: (state: StateType, action: ActionType) => StateType,
+    effects$: Observable<ActionType>[] = []
+  ) {
+    merge(this.actions$, ...effects$).pipe(
       tap((action => console.log('Action', action.type, action.payload))),
-      scan<any>(reducer),
+      scan<ActionType, StateType>(reducer),
       tap(newState => this.stateSource.next(newState))
     ).subscribe();
   }
