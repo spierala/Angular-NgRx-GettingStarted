@@ -1,18 +1,18 @@
-import { BehaviorSubject, combineLatest, merge, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, map, scan, share, tap } from 'rxjs/operators';
+import { combineLatest, merge, MonoTypeOperatorFunction, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, scan, share, startWith, takeUntil, tap } from 'rxjs/operators';
+import { OnDestroy } from '@angular/core';
 
-export class MiniStore<StateType, ActionType extends { type: string, payload?: any }> {
-  private actionsSource: BehaviorSubject<ActionType> = new BehaviorSubject({type: 'init'} as ActionType); // TODO 'init' ?!
+export class MiniStore<StateType, ActionType extends Action> implements OnDestroy {
+  private actionsSource: Subject<ActionType> = new Subject();
   actions$: Observable<ActionType> = this.actionsSource.asObservable();
 
   private stateSource: Subject<StateType> = new Subject();
-  state$: Observable<StateType> = this.stateSource.asObservable().pipe(
-    tap(() => console.log('SELECTOR: state$')),
-    share()
-  );
+  state$: Observable<StateType> = this.stateSource.asObservable(); // TODO share needed ?
+
+  private unsubscribe$ = new Subject();
 
   constructor() {
-    console.log('MINI STORE READY');
+    console.log('MINI STORE READY', this.constructor.name);
   }
 
   init(
@@ -21,13 +21,15 @@ export class MiniStore<StateType, ActionType extends { type: string, payload?: a
     effects$: Observable<ActionType>[] = []
   ) {
     merge(this.actions$, ...effects$).pipe(
-      tap((action => console.log('Action', action.type, action.payload))),
-      scan<ActionType, StateType>(reducer, initialState),
+      tap((action => console.log('Action: ', action.type, action.payload))),
+      startWith(initialState),
+      scan<ActionType, StateType>(reducer),
       distinctUntilChanged(),
       tap(newState => {
         this.stateSource.next(newState);
-        console.log('New State', newState);
+        console.log('New State: ', newState);
       }),
+      takeUntil(this.unsubscribe$)
     ).subscribe();
   }
 
@@ -40,4 +42,22 @@ export class MiniStore<StateType, ActionType extends { type: string, payload?: a
       share()
     );
   }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+
+    console.log('MINI STORE DESTROYED', this.constructor.name);
+  }
+}
+
+export interface Action {
+  type: string;
+  payload?: any;
+}
+
+export function ofType<T extends Action>(
+  type: string
+): MonoTypeOperatorFunction<T> {
+  return filter((action) => type === action.type);
 }
