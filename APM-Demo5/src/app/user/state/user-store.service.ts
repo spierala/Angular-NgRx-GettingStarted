@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {MiniStore} from '../../mini-store';
-import {reducer, UserState} from './user.reducer';
+import { initialState, reducer, UserState } from './user.reducer';
 import {UserActions, UserActionTypes} from './user.actions';
 import {map} from 'rxjs/operators';
 
@@ -16,6 +16,6 @@ export class UserStoreService extends MiniStore<UserState, UserActions> {
   constructor() {
     super();
 
-    this.init(reducer);
+    this.init(reducer, initialState);
   }
 }

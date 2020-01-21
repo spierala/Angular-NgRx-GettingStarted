@@ -1,13 +1,12 @@
 import { Injectable } from '@angular/core';
-import {catchError, filter, map, mergeMap, share, tap} from 'rxjs/operators';
-import {combineLatest, Observable, of} from 'rxjs';
-import {initialState, ProductState, reducer} from './product.reducer';
+import { catchError, filter, map, mergeMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { initialState, ProductState, reducer } from './product.reducer';
 import * as productActions from './product.actions';
 import { ProductActions, ProductActionTypes } from './product.actions';
 import { MiniStore } from '../../mini-store';
 import { Product } from '../product';
 import { ProductService } from '../product.service';
-import {UserStoreService} from '../../user/state/user-store.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,27 +14,15 @@ import {UserStoreService} from '../../user/state/user-store.service';
 export class ProductStoreService extends MiniStore<ProductState, ProductActions> {
 
   // SELECTORS
-  products$ = this.state$.pipe(
-    map(state => state.products)
-  );
+  products$ = this.select<Product[]>([this.state$], (state) => state.products);
+  currentProductId$ = this.select<number>([this.state$], (state: ProductState) => state.currentProductId);
+  showProductCode$ = this.select<boolean>([this.state$], (state: ProductState) => state.showProductCode);
+  errorMessage$ = this.select<string>([this.state$], (state: ProductState) => state.error);
+  currentProduct$ = this.select<Product>([this.products$, this.currentProductId$, this.showProductCode$], (products, currentProductId) => {
 
-  showProductCode$ = this.state$.pipe(
-    map(state => {
-      debugger
-      return state.showProductCode
-    })
-  );
+      console.log('TEST'); // TODO
 
-  errorMessage$ = this.state$.pipe(
-    map(state => state.error)
-  );
-
-  currentProduct$ = this.state$.pipe(
-    map((state) => {
-
-      debugger // TODO check why triggered twice...
-
-      if (state.currentProductId === 0) {
+      if (currentProductId === 0) {
         return {
           id: 0,
           productName: '',
@@ -44,11 +31,9 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
           starRating: 0
         };
       } else {
-        return state.currentProductId ? state.products.find(p => p.id === state.currentProductId) : null;
+        return currentProductId ? products.find(p => p.id === currentProductId) : null;
       }
-    }),
-    // share()
-  );
+    });
 
   // EFFECTS
   private loadProducts$: Observable<ProductActions> = this.actions$.pipe(
@@ -95,16 +80,15 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
   );
 
   constructor(
-    private productService: ProductService,
-    private userStoreService: UserStoreService
+    private productService: ProductService
   ) {
       super();
       this.init(reducer, initialState, [
         // Effects
-        // this.loadProducts$,
-        // this.updateProduct$,
-        // this.createProduct$,
-        // this.deleteProduct$
+        this.loadProducts$,
+        this.updateProduct$,
+        this.createProduct$,
+        this.deleteProduct$
       ]);
   }
 }
