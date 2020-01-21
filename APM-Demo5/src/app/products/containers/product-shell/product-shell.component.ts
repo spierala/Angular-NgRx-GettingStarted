@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import * as productActions from './../../state/product.actions';
 import {Product} from '../../product';
-import {ProductStoreService} from '../../action-driven-state/product-store.service';
+import {ProductStoreService} from '../../state/product-store.service';
 
 @Component({
   templateUrl: './product-shell.component.html',

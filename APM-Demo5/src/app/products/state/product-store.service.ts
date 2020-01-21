@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
-import { catchError, filter, map, mergeMap } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
-import { ProductState, reducer } from '../state/product.reducer';
-import * as productActions from '../state/product.actions';
-import { ProductActions, ProductActionTypes } from '../state/product.actions';
-import { MiniStore } from './mini-store';
+import {catchError, filter, map, mergeMap, share, tap} from 'rxjs/operators';
+import {combineLatest, Observable, of} from 'rxjs';
+import {initialState, ProductState, reducer} from './product.reducer';
+import * as productActions from './product.actions';
+import { ProductActions, ProductActionTypes } from './product.actions';
+import { MiniStore } from '../../mini-store';
 import { Product } from '../product';
 import { ProductService } from '../product.service';
+import {UserStoreService} from '../../user/state/user-store.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,10 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
   );
 
   showProductCode$ = this.state$.pipe(
-    map(state => state.showProductCode)
+    map(state => {
+      debugger
+      return state.showProductCode
+    })
   );
 
   errorMessage$ = this.state$.pipe(
@@ -28,6 +32,9 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
 
   currentProduct$ = this.state$.pipe(
     map((state) => {
+
+      debugger // TODO check why triggered twice...
+
       if (state.currentProductId === 0) {
         return {
           id: 0,
@@ -39,7 +46,8 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
       } else {
         return state.currentProductId ? state.products.find(p => p.id === state.currentProductId) : null;
       }
-    })
+    }),
+    // share()
   );
 
   // EFFECTS
@@ -87,15 +95,16 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
   );
 
   constructor(
-    private productService: ProductService
+    private productService: ProductService,
+    private userStoreService: UserStoreService
   ) {
       super();
-      this.init(reducer, [
+      this.init(reducer, initialState, [
         // Effects
-        this.loadProducts$,
-        this.updateProduct$,
-        this.createProduct$,
-        this.deleteProduct$
+        // this.loadProducts$,
+        // this.updateProduct$,
+        // this.createProduct$,
+        // this.deleteProduct$
       ]);
   }
 }

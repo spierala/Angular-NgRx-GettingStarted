@@ -11,6 +11,7 @@ import { Store, select } from '@ngrx/store';
 import * as fromUser from './state';
 import * as userActions from './state/user.actions';
 import * as fromRoot from '../state/app.state';
+import {UserStoreService} from './state/user-store.service';
 
 @Component({
   templateUrl: './login.component.html',
@@ -23,13 +24,12 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   maskUserName: boolean;
 
-  constructor(private store: Store<fromRoot.State>,
+  constructor(private store: UserStoreService,
               private authService: AuthService,
               private router: Router) { }
 
   ngOnInit(): void {
-    this.store.pipe(
-      select(fromUser.getMaskUserName),
+    this.store.maskUserName$.pipe(
       takeWhile(() => this.componentActive)
     ).subscribe(
       maskUserName => this.maskUserName = maskUserName
