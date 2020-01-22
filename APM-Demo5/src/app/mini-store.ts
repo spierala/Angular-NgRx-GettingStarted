@@ -1,5 +1,15 @@
 import { combineLatest, merge, MonoTypeOperatorFunction, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map, scan, share, startWith, takeUntil, tap } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  filter,
+  map,
+  publishReplay,
+  refCount,
+  scan,
+  startWith,
+  takeUntil,
+  tap
+} from 'rxjs/operators';
 import { OnDestroy } from '@angular/core';
 
 export class MiniStore<StateType, ActionType extends Action> implements OnDestroy {
@@ -7,7 +17,11 @@ export class MiniStore<StateType, ActionType extends Action> implements OnDestro
   actions$: Observable<ActionType> = this.actionsSource.asObservable();
 
   private stateSource: Subject<StateType> = new Subject();
-  state$: Observable<StateType> = this.stateSource.asObservable(); // TODO share needed ?
+  state$: Observable<StateType> = this.stateSource.asObservable().pipe(
+    publishReplay(1),
+    refCount()
+    // share()
+  );
 
   private unsubscribe$ = new Subject();
 
@@ -26,8 +40,8 @@ export class MiniStore<StateType, ActionType extends Action> implements OnDestro
       scan<ActionType, StateType>(reducer),
       distinctUntilChanged(),
       tap(newState => {
-        this.stateSource.next(newState);
         console.log('New State: ', newState);
+        this.stateSource.next(newState);
       }),
       takeUntil(this.unsubscribe$)
     ).subscribe();
@@ -39,7 +53,8 @@ export class MiniStore<StateType, ActionType extends Action> implements OnDestro
     return combineLatest(...obs).pipe(
       map((resultArr) => projector(...resultArr)),
       distinctUntilChanged(),
-      share()
+      publishReplay(1),
+      refCount()
     );
   }
 
