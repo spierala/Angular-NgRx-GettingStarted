@@ -2,7 +2,13 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import * as productActions from './../../state/product.actions';
 import {Product} from '../../product';
-import { ProductStoreService } from '../../state/product-store.service';
+import {
+  getCurrentProduct,
+  getError,
+  getProducts,
+  getShowProductCode,
+  ProductStoreService
+} from '../../state/product-store.service';
 import { tap } from 'rxjs/operators';
 
 @Component({
@@ -21,21 +27,20 @@ export class ProductShellComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.state$ = this.productStoreService.state$.pipe(
-      tap((data) => console.log('shell state$', data))
-    );
-
-    this.products$ = this.productStoreService.products$.pipe(
+    this.products$ = this.productStoreService.select(getProducts).pipe(
       tap((data) => console.log('shell products$', data))
     );
-    this.errorMessage$ = this.productStoreService.errorMessage$.pipe(
+
+    this.errorMessage$ = this.productStoreService.select(getError).pipe(
       tap((data) => console.log('shell errorMessage$', data))
     );
-    this.selectedProduct$ = this.productStoreService.currentProduct$.pipe(
+
+    this.selectedProduct$ = this.productStoreService.select(getCurrentProduct).pipe(
       // TODO: check why triggered twice when current product id changes
       tap((data) => console.log('shell currentProduct$', data))
     );
-    this.displayCode$ = this.productStoreService.showProductCode$.pipe(
+
+    this.displayCode$ = this.productStoreService.select(getShowProductCode).pipe(
       tap((data) => console.log('shell showProductCode$', data))
     );
   }

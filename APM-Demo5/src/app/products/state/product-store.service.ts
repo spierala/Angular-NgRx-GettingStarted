@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { catchError, map, mergeMap, share } from 'rxjs/operators';
+import { catchError, map, mergeMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { initialState, ProductState, reducer } from './product.reducer';
 import * as productActions from './product.actions';
 import { ProductActions, ProductActionTypes } from './product.actions';
-import { MiniStore, ofType } from '../../mini-store';
+import { createSelector, MiniStore, ofType } from '../../mini-store';
 import { Product } from '../product';
 import { ProductService } from '../product.service';
 
@@ -12,33 +12,6 @@ import { ProductService } from '../product.service';
   providedIn: 'root'
 })
 export class ProductStoreService extends MiniStore<ProductState, ProductActions> {
-
-  // SELECTORS
-  products$ = this.select<Product[]>([this.state$], (state) => state.products);
-  currentProductId$ = this.select<number>([this.state$], (state: ProductState) => state.currentProductId);
-  showProductCode$ = this.select<boolean>([this.state$], (state: ProductState) => state.showProductCode);
-  errorMessage$ = this.select<string>([this.state$], (state: ProductState) => state.error);
-
-  // currentProduct$ = this.select<Product>([this.products$, this.currentProductId$], (products, currentProductId) => {
-  // currentProduct$ = this.select<Product>([this.state$], (state) => {
-  currentProduct$ = this.state$.pipe(
-    map((state) => {
-
-    // TODO: check why triggered twice when route changes to /products
-    console.log('Calc Current Product');
-
-    if (state.currentProductId === 0) {
-      return {
-        id: 0,
-        productName: '',
-        productCode: 'New',
-        description: '',
-        starRating: 0
-      };
-    } else {
-      return state.currentProductId ? state.products.find(p => p.id === state.currentProductId) : null;
-    }
-  }));
 
   // EFFECTS
   private loadProducts$: Observable<ProductActions> = this.actions$.pipe(
@@ -99,3 +72,47 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
     this.dispatch(new productActions.Load());
   }
 }
+
+export function getProductFeatureState(state: ProductState) {
+  return state;
+}
+
+export const getShowProductCode = createSelector(
+  getProductFeatureState,
+  state => state.showProductCode
+);
+
+export const getCurrentProductId = createSelector(
+  getProductFeatureState,
+  state => state.currentProductId
+);
+
+export const getCurrentProduct = createSelector(
+  getProductFeatureState,
+  getCurrentProductId,
+  (state, currentProductId) => {
+    console.log('CALC current product...')
+
+    if (currentProductId === 0) {
+      return {
+        id: 0,
+        productName: '',
+        productCode: 'New',
+        description: '',
+        starRating: 0
+      };
+    } else {
+      return currentProductId ? state.products.find(p => p.id === currentProductId) : null;
+    }
+  }
+);
+
+export const getProducts = createSelector(
+  getProductFeatureState,
+  state => state.products
+);
+
+export const getError = createSelector(
+  getProductFeatureState,
+  state => state.error
+);

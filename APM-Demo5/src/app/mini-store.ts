@@ -1,4 +1,4 @@
-import { combineLatest, merge, MonoTypeOperatorFunction, Observable, Subject } from 'rxjs';
+import { merge, MonoTypeOperatorFunction, Observable, Subject } from 'rxjs';
 import {
   distinctUntilChanged,
   filter,
@@ -14,13 +14,12 @@ import { OnDestroy } from '@angular/core';
 
 export class MiniStore<StateType, ActionType extends Action> implements OnDestroy {
   private actionsSource: Subject<ActionType> = new Subject();
-  actions$: Observable<ActionType> = this.actionsSource.asObservable();
+  actions$: Observable<ActionType> = this.actionsSource.asObservable(); // TODO make actions private?
 
   private stateSource: Subject<StateType> = new Subject();
-  state$: Observable<StateType> = this.stateSource.asObservable().pipe(
+  private state$: Observable<StateType> = this.stateSource.asObservable().pipe(
     publishReplay(1),
     refCount()
-    // share()
   );
 
   private unsubscribe$ = new Subject();
@@ -49,13 +48,13 @@ export class MiniStore<StateType, ActionType extends Action> implements OnDestro
 
   dispatch = (action: ActionType) => this.actionsSource.next(action);
 
-  select<T>(obs: Observable<any>[], projector: (...args: any[]) => T): Observable<T> {
-    return combineLatest(...obs).pipe(
-      map((resultArr) => projector(...resultArr)),
-      distinctUntilChanged(),
-      publishReplay(1),
-      refCount()
-    );
+  select(mapFn: ((state: any) => any)) {
+      return this.state$.pipe(
+        map(source => mapFn(source)),
+        distinctUntilChanged(),
+        publishReplay(1),
+        refCount()
+      );
   }
 
   ngOnDestroy(): void {
@@ -75,4 +74,14 @@ export function ofType<T extends Action>(
   type: string
 ): MonoTypeOperatorFunction<T> {
   return filter((action) => type === action.type);
+}
+
+export function createSelector(...args: any[]) {
+  const selectors = args.slice(0, args.length - 1);
+  const projector = args[args.length - 1];
+
+  return (state) => {
+    const selectorResults = selectors.map(fn => fn(state));
+    return projector.apply(null, selectorResults as any);
+  };
 }
