@@ -20,6 +20,12 @@
   </div>
 </div>
 
+<p>First Product</p>
 <pre>
-  {{this.state$ | async}}
+  {{this.product$ | async | json}}
+</pre>
+
+<p>Product By Id</p>
+<pre>
+  {{this.productById$ | async | json}}
 </pre>

@@ -8,7 +8,9 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "build:stats": "ng build --stats-json",
+    "analyze": "webpack-bundle-analyzer dist/AngularBundleAnalyser/stats.json"
   },
   "private": true,
   "dependencies": {
@@ -24,6 +26,7 @@
     "@ngrx/store": "^8.3.0",
     "@ngrx/store-devtools": "^8.3.0",
     "bootstrap": "^4.3.1",
+    "memoize-one": "^5.1.1",
     "rxjs": "~6.4.0",
     "tslib": "^1.10.0",
     "zone.js": "~0.9.1"

@@ -11,6 +11,7 @@ import {
   tap
 } from 'rxjs/operators';
 import { OnDestroy } from '@angular/core';
+import memoizeOne from 'memoize-one'; // TODO get rid of memoizeOne import?
 
 export class MiniStore<StateType, ActionType extends Action> implements OnDestroy {
   private actionsSource: Subject<ActionType> = new Subject();
@@ -20,6 +21,7 @@ export class MiniStore<StateType, ActionType extends Action> implements OnDestro
   private state$: Observable<StateType> = this.stateSource.asObservable().pipe(
     publishReplay(1),
     refCount()
+    // TODO check why publishReplay and refCount needed here (if they are also used for the selector)
   );
 
   private unsubscribe$ = new Subject();
@@ -43,23 +45,28 @@ export class MiniStore<StateType, ActionType extends Action> implements OnDestro
         this.stateSource.next(newState);
       }),
       takeUntil(this.unsubscribe$)
-    ).subscribe();
+    ).subscribe(); // TODO get rid of subscription?
   }
 
   dispatch = (action: ActionType) => this.actionsSource.next(action);
 
   select(mapFn: ((state: any) => any)) {
-      return this.state$.pipe(
-        map(source => mapFn(source)),
-        distinctUntilChanged(),
-        publishReplay(1),
-        refCount()
-      );
+    console.log('select');
+
+    return this.state$.pipe(
+      map(source => mapFn(source)),
+      distinctUntilChanged(),
+      publishReplay(1),
+      refCount()
+    );
   }
 
   ngOnDestroy(): void {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
+
+    // TODO ngOnDestroy ever called?
+    debugger
 
     console.log('MINI STORE DESTROYED', this.constructor.name);
   }
@@ -80,8 +87,8 @@ export function createSelector(...args: any[]) {
   const selectors = args.slice(0, args.length - 1);
   const projector = args[args.length - 1];
 
-  return (state) => {
+  return memoizeOne((state) => {
     const selectorResults = selectors.map(fn => fn(state));
     return projector.apply(null, selectorResults as any);
-  };
+  });
 }

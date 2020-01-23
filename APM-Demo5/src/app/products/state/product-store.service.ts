@@ -74,6 +74,7 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
 }
 
 export function getProductFeatureState(state: ProductState) {
+  console.log('selector getProductFeatureState');
   return state;
 }
 
@@ -84,14 +85,25 @@ export const getShowProductCode = createSelector(
 
 export const getCurrentProductId = createSelector(
   getProductFeatureState,
-  state => state.currentProductId
+  state => {
+    console.log('selector getCurrentProductId');
+    return state.currentProductId;
+  }
+);
+
+export const getProducts = createSelector(
+  getProductFeatureState,
+  state => {
+    console.log('selector getProducts');
+    return state.products;
+  }
 );
 
 export const getCurrentProduct = createSelector(
-  getProductFeatureState,
+  getProducts,
   getCurrentProductId,
-  (state, currentProductId) => {
-    console.log('CALC current product...')
+  (products, currentProductId) => {
+    console.log('CALC current product...');
 
     if (currentProductId === 0) {
       return {
@@ -102,14 +114,19 @@ export const getCurrentProduct = createSelector(
         starRating: 0
       };
     } else {
-      return currentProductId ? state.products.find(p => p.id === currentProductId) : null;
+      return currentProductId ? products.find(p => p.id === currentProductId) : null;
     }
   }
 );
 
-export const getProducts = createSelector(
-  getProductFeatureState,
-  state => state.products
+export const getFirstProduct = createSelector(
+  getProducts,
+  (products) => products[0]
+);
+
+export const getProductById = (id: number) => createSelector(
+  getProducts,
+  (products) => products.find(p => p.id === id)
 );
 
 export const getError = createSelector(

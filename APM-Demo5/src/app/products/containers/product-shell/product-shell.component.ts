@@ -4,7 +4,7 @@ import * as productActions from './../../state/product.actions';
 import {Product} from '../../product';
 import {
   getCurrentProduct,
-  getError,
+  getError, getFirstProduct, getProductById,
   getProducts,
   getShowProductCode,
   ProductStoreService
@@ -19,6 +19,8 @@ export class ProductShellComponent implements OnInit {
   displayCode$: Observable<boolean>;
   selectedProduct$: Observable<Product>;
   products$: Observable<Product[]>;
+  product$: Observable<Product>;
+  productById$: Observable<Product>;
   errorMessage$: Observable<string>;
   state$: Observable<any>;
 
@@ -43,6 +45,10 @@ export class ProductShellComponent implements OnInit {
     this.displayCode$ = this.productStoreService.select(getShowProductCode).pipe(
       tap((data) => console.log('shell showProductCode$', data))
     );
+
+    this.product$ = this.productStoreService.select(getFirstProduct);
+
+    this.productById$ = this.productStoreService.select(getProductById(1));
   }
 
   checkChanged(value: boolean): void {
