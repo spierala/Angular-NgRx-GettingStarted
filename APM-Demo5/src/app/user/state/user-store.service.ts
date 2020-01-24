@@ -10,7 +10,7 @@ import { createSelector } from '@ngrx/store';
 export class UserStoreService extends MiniStore<UserState, UserActions> {
 
   constructor() {
-    super();
+    super('user');
 
     this.init(reducer, initialState);
   }

@@ -1,16 +1,15 @@
-import { BehaviorSubject, merge, MonoTypeOperatorFunction, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map, scan, startWith, tap } from 'rxjs/operators';
-import memoizeOne from 'memoize-one';
+import {merge, Observable} from 'rxjs';
+import {distinctUntilChanged, map, scan, startWith, tap} from 'rxjs/operators';
+import {Action} from './mini-store.utils';
+import MiniStoreBase from './mini-store-base';
 
 export class MiniStore<StateType, ActionType extends Action> {
 
-  private actionsSource: Subject<ActionType> = new Subject();
-  actions$: Observable<ActionType> = this.actionsSource.asObservable(); // TODO make actions private?
+  actions$ = MiniStoreBase.actions$;
 
-  private stateSource: BehaviorSubject<StateType> = new BehaviorSubject(undefined);
-  private state$: Observable<StateType> = this.stateSource.asObservable()
-
-  constructor() {
+  constructor(
+    private featureName: string
+  ) {
     console.log('MINI STORE READY', this.constructor.name);
   }
 
@@ -19,48 +18,29 @@ export class MiniStore<StateType, ActionType extends Action> {
     initialState: StateType,
     effects$: Observable<ActionType>[] = []
   ) {
-    merge(this.actions$, ...effects$).pipe(
+
+    MiniStoreBase.addFeatureStore(this.featureName);
+
+    merge(MiniStoreBase.actions$, ...effects$).pipe(
       tap((action => console.log('Action: ', action.type, action.payload))),
       startWith(initialState),
       scan<ActionType, StateType>(reducer),
       distinctUntilChanged(),
       tap(newState => {
         console.log('New State: ', newState);
-        this.stateSource.next(newState);
+        MiniStoreBase.updateState(newState, this.featureName);
       })
     ).subscribe(); // TODO get rid of subscription?
   }
 
-  dispatch = (action: ActionType) => this.actionsSource.next(action);
+  dispatch = (action: ActionType) => MiniStoreBase.dispatch(action);
 
   select(mapFn: ((state: any) => any)) {
-    return this.state$.pipe(
-      map(source => mapFn(source)),
+    return MiniStoreBase.state$.pipe(
+      map(state => mapFn(state[this.featureName])),
       distinctUntilChanged()
     );
   }
 
   // TODO Add clean up logic ?
-}
-
-export interface Action {
-  type: string;
-  payload?: any;
-}
-
-export function ofType<T extends Action>(
-  type: string
-): MonoTypeOperatorFunction<T> {
-  return filter((action) => type === action.type);
-}
-
-export function createSelector(...args: any[]) {
-  const selectors = args.slice(0, args.length - 1);
-  const projector = args[args.length - 1];
-  const memoizedProjector = memoizeOne(projector); // TODO add memoize function to src ?
-
-  return (state) => {
-    const selectorResults = selectors.map(fn => fn(state));
-    return memoizedProjector.apply(null, selectorResults);
-  };
 }

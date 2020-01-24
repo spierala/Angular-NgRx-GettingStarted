@@ -4,9 +4,10 @@ import { Observable, of } from 'rxjs';
 import { initialState, ProductState, reducer } from './product.reducer';
 import * as productActions from './product.actions';
 import { ProductActions, ProductActionTypes } from './product.actions';
-import { createSelector, MiniStore, ofType } from '../../mini-store';
+import { MiniStore } from '../../mini-store';
 import { Product } from '../product';
 import { ProductService } from '../product.service';
+import {createSelector, ofType} from 'src/app/mini-store.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -60,7 +61,7 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
   constructor(
     private productService: ProductService
   ) {
-    super();
+    super('products');
     this.init(reducer, initialState, [
       // Effects
       this.loadProducts$,
