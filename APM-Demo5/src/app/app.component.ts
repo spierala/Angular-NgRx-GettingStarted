@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import memoizeOne from 'memoize-one';
+import { ProductStoreService } from './products/state/product-store.service';
+import * as productActions from './products/state/product.actions';
 
 @Component({
   selector: 'pm-root',
@@ -7,13 +8,9 @@ import memoizeOne from 'memoize-one';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  constructor() {
-    const add = (a, b) => {
-      console.log('add', a, b);
-    };
-
-    const memAdd = memoizeOne(add);
-
-    memAdd(1, 4);
+  constructor(
+    private productStoreService: ProductStoreService
+  ) {
+    this.productStoreService.dispatch(new productActions.Load());
   }
 }

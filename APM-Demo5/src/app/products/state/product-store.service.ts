@@ -68,8 +68,6 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
       this.createProduct$,
       this.deleteProduct$
     ]);
-
-    this.dispatch(new productActions.Load());
   }
 }
 

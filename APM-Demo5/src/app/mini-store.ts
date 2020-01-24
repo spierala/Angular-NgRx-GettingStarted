@@ -1,14 +1,5 @@
-import { merge, MonoTypeOperatorFunction, Observable, Subject } from 'rxjs';
-import {
-  distinctUntilChanged,
-  filter,
-  map,
-  publishReplay,
-  refCount,
-  scan,
-  startWith,
-  tap
-} from 'rxjs/operators';
+import { BehaviorSubject, merge, MonoTypeOperatorFunction, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, scan, startWith, tap } from 'rxjs/operators';
 import memoizeOne from 'memoize-one';
 
 export class MiniStore<StateType, ActionType extends Action> {
@@ -16,11 +7,8 @@ export class MiniStore<StateType, ActionType extends Action> {
   private actionsSource: Subject<ActionType> = new Subject();
   actions$: Observable<ActionType> = this.actionsSource.asObservable(); // TODO make actions private?
 
-  private stateSource: Subject<StateType> = new Subject();
-  private state$: Observable<StateType> = this.stateSource.asObservable().pipe(
-    publishReplay(1),
-    refCount()
-  );
+  private stateSource: BehaviorSubject<StateType> = new BehaviorSubject(undefined);
+  private state$: Observable<StateType> = this.stateSource.asObservable()
 
   constructor() {
     console.log('MINI STORE READY', this.constructor.name);
