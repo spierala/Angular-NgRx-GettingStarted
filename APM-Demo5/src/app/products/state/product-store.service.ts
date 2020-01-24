@@ -103,7 +103,7 @@ export const getCurrentProduct = createSelector(
   getProducts,
   getCurrentProductId,
   (products, currentProductId) => {
-    console.log('CALC current product...');
+    console.log('CALC current product...', products, currentProductId);
 
     if (currentProductId === 0) {
       return {

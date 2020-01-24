@@ -7,13 +7,12 @@ import {
   refCount,
   scan,
   startWith,
-  takeUntil,
   tap
 } from 'rxjs/operators';
-import { OnDestroy } from '@angular/core';
-import memoizeOne from 'memoize-one'; // TODO get rid of memoizeOne import?
+import memoizeOne from 'memoize-one';
 
-export class MiniStore<StateType, ActionType extends Action> implements OnDestroy {
+export class MiniStore<StateType, ActionType extends Action> {
+
   private actionsSource: Subject<ActionType> = new Subject();
   actions$: Observable<ActionType> = this.actionsSource.asObservable(); // TODO make actions private?
 
@@ -21,10 +20,7 @@ export class MiniStore<StateType, ActionType extends Action> implements OnDestro
   private state$: Observable<StateType> = this.stateSource.asObservable().pipe(
     publishReplay(1),
     refCount()
-    // TODO check why publishReplay and refCount needed here (if they are also used for the selector)
   );
-
-  private unsubscribe$ = new Subject();
 
   constructor() {
     console.log('MINI STORE READY', this.constructor.name);
@@ -43,33 +39,20 @@ export class MiniStore<StateType, ActionType extends Action> implements OnDestro
       tap(newState => {
         console.log('New State: ', newState);
         this.stateSource.next(newState);
-      }),
-      takeUntil(this.unsubscribe$)
+      })
     ).subscribe(); // TODO get rid of subscription?
   }
 
   dispatch = (action: ActionType) => this.actionsSource.next(action);
 
   select(mapFn: ((state: any) => any)) {
-    console.log('select');
-
     return this.state$.pipe(
       map(source => mapFn(source)),
-      distinctUntilChanged(),
-      publishReplay(1),
-      refCount()
+      distinctUntilChanged()
     );
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
-
-    // TODO ngOnDestroy ever called?
-    debugger
-
-    console.log('MINI STORE DESTROYED', this.constructor.name);
-  }
+  // TODO Add clean up logic ?
 }
 
 export interface Action {
@@ -86,9 +69,10 @@ export function ofType<T extends Action>(
 export function createSelector(...args: any[]) {
   const selectors = args.slice(0, args.length - 1);
   const projector = args[args.length - 1];
+  const memoizedProjector = memoizeOne(projector); // TODO add memoize function to src ?
 
-  return memoizeOne((state) => {
+  return (state) => {
     const selectorResults = selectors.map(fn => fn(state));
-    return projector.apply(null, selectorResults as any);
-  });
+    return memoizedProjector.apply(null, selectorResults);
+  };
 }
