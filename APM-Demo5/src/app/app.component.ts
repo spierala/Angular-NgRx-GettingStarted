@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { ProductStoreService } from './products/state/product-store.service';
 import * as productActions from './products/state/product.actions';
+import Store from './mini-store-base';
 
 @Component({
   selector: 'pm-root',
@@ -9,8 +9,8 @@ import * as productActions from './products/state/product.actions';
 })
 export class AppComponent {
   constructor(
-    private productStoreService: ProductStoreService
+
   ) {
-    this.productStoreService.dispatch(new productActions.Load());
+    Store.dispatch(new productActions.Load());
   }
 }

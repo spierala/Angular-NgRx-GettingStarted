@@ -1,6 +1,6 @@
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {Action} from './mini-store.utils';
-import {share, tap} from 'rxjs/operators';
+import {distinctUntilChanged, map} from 'rxjs/operators';
 
 class MiniStoreBase {
   private actionsSource: Subject<Action> = new Subject();
@@ -8,8 +8,8 @@ class MiniStoreBase {
 
   private stateSource: BehaviorSubject<any> = new BehaviorSubject({});
   state$: Observable<any> = this.stateSource.asObservable().pipe(
-    tap(globalState => console.log('GlobalState', globalState)),
-    share() // TODO
+    // tap(globalState => console.log('GlobalState', globalState)),
+    // share() // TODO
   );
 
   updateState(state, featureName) {
@@ -23,6 +23,13 @@ class MiniStoreBase {
 
   dispatch = (action: Action) => this.actionsSource.next(action);
 
+  select(mapFn: ((state: any) => any)) {
+    return this.state$.pipe(
+      map(state => mapFn(state)),
+      distinctUntilChanged()
+    );
+  }
+
   addFeatureStore(featureName: string) {
     const currentState = this.stateSource.getValue();
     if (!currentState.hasOwnProperty(featureName)) {
@@ -32,4 +39,7 @@ class MiniStoreBase {
 }
 
 // Created once to initialize singleton
-export default new MiniStoreBase();
+const Store = new MiniStoreBase();
+
+export default Store;
+export const actions$ = Store.actions$;

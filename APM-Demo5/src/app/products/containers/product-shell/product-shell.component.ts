@@ -7,9 +7,9 @@ import {
   getError, getFirstProduct, getProductById,
   getProducts,
   getShowProductCode,
-  ProductStoreService
 } from '../../state/product-store.service';
 import { tap } from 'rxjs/operators';
+import Store from '../../../mini-store-base';
 
 @Component({
   templateUrl: './product-shell.component.html',
@@ -22,59 +22,58 @@ export class ProductShellComponent implements OnInit {
   product$: Observable<Product>;
   productById$: Observable<Product>;
   errorMessage$: Observable<string>;
-  state$: Observable<any>;
 
   constructor(
-    private productStoreService: ProductStoreService
+
   ) {}
 
   ngOnInit(): void {
-    this.products$ = this.productStoreService.select(getProducts).pipe(
+    this.products$ = Store.select(getProducts).pipe(
       tap((data) => console.log('shell products$', data))
     );
 
-    this.errorMessage$ = this.productStoreService.select(getError).pipe(
+    this.errorMessage$ = Store.select(getError).pipe(
       tap((data) => console.log('shell errorMessage$', data))
     );
 
-    this.selectedProduct$ = this.productStoreService.select(getCurrentProduct).pipe(
+    this.selectedProduct$ = Store.select(getCurrentProduct).pipe(
       // TODO: check why triggered twice when current product id changes
       tap((data) => console.log('shell currentProduct$', data))
     );
 
-    this.displayCode$ = this.productStoreService.select(getShowProductCode).pipe(
+    this.displayCode$ = Store.select(getShowProductCode).pipe(
       tap((data) => console.log('shell showProductCode$', data))
     );
 
-    this.product$ = this.productStoreService.select(getFirstProduct);
+    this.product$ = Store.select(getFirstProduct);
 
-    this.productById$ = this.productStoreService.select(getProductById(1));
+    this.productById$ = Store.select(getProductById(1));
   }
 
   checkChanged(value: boolean): void {
-    this.productStoreService.dispatch(new productActions.ToggleProductCode(value));
+    Store.dispatch(new productActions.ToggleProductCode(value));
   }
 
   newProduct(): void {
-    this.productStoreService.dispatch(new productActions.InitializeCurrentProduct());
+    Store.dispatch(new productActions.InitializeCurrentProduct());
   }
 
   productSelected(product: Product): void {
-    this.productStoreService.dispatch(new productActions.SetCurrentProduct(product));
+    Store.dispatch(new productActions.SetCurrentProduct(product));
   }
 
   deleteProduct(product: Product): void {
-    this.productStoreService.dispatch(new productActions.DeleteProduct(product.id));
+    Store.dispatch(new productActions.DeleteProduct(product.id));
   }
 
   clearProduct(): void {
-    this.productStoreService.dispatch(new productActions.ClearCurrentProduct());
+    Store.dispatch(new productActions.ClearCurrentProduct());
   }
   saveProduct(product: Product): void {
-    this.productStoreService.dispatch(new productActions.CreateProduct(product));
+    Store.dispatch(new productActions.CreateProduct(product));
   }
 
   updateProduct(product: Product): void {
-    this.productStoreService.dispatch(new productActions.UpdateProduct(product));
+    Store.dispatch(new productActions.UpdateProduct(product));
   }
 }

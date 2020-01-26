@@ -23,3 +23,12 @@ export function createSelector(...args: any[]) {
     return memoizedProjector.apply(null, selectorResults);
   };
 }
+
+export function createFeatureSelector(
+  featureName: any
+) {
+  return createSelector((state: any) => {
+    const featureState = state[featureName];
+    return featureState;
+  }, (featureState: any) => featureState);
+}

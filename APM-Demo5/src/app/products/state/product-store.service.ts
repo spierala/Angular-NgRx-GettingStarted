@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
-import { initialState, ProductState, reducer } from './product.reducer';
+import { ProductState, reducer } from './product.reducer';
 import * as productActions from './product.actions';
 import { ProductActions, ProductActionTypes } from './product.actions';
 import { MiniStore } from '../../mini-store';
 import { Product } from '../product';
 import { ProductService } from '../product.service';
-import {createSelector, ofType} from 'src/app/mini-store.utils';
+import {createFeatureSelector, createSelector, ofType} from 'src/app/mini-store.utils';
+import {actions$} from '../../mini-store-base';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ import {createSelector, ofType} from 'src/app/mini-store.utils';
 export class ProductStoreService extends MiniStore<ProductState, ProductActions> {
 
   // EFFECTS
-  private loadProducts$: Observable<ProductActions> = this.actions$.pipe(
+  private loadProducts$: Observable<ProductActions> = actions$.pipe(
     ofType(ProductActionTypes.Load),
     mergeMap(action =>
       this.productService.getProducts().pipe(
@@ -25,7 +26,7 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
     )
   );
 
-  private updateProduct$: Observable<ProductActions> = this.actions$.pipe(
+  private updateProduct$: Observable<ProductActions> = actions$.pipe(
     ofType(ProductActionTypes.UpdateProduct),
     map((action: productActions.UpdateProduct) => action.payload),
     mergeMap((product: Product) =>
@@ -36,7 +37,7 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
     )
   );
 
-  private createProduct$: Observable<ProductActions> = this.actions$.pipe(
+  private createProduct$: Observable<ProductActions> = actions$.pipe(
     ofType(ProductActionTypes.CreateProduct),
     map((action: productActions.CreateProduct) => action.payload),
     mergeMap((product: Product) =>
@@ -47,7 +48,7 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
     )
   );
 
-  private deleteProduct$: Observable<ProductActions> = this.actions$.pipe(
+  private deleteProduct$: Observable<ProductActions> = actions$.pipe(
     ofType(ProductActionTypes.DeleteProduct),
     map((action: productActions.DeleteProduct) => action.payload),
     mergeMap((productId: number) =>
@@ -58,24 +59,23 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
     )
   );
 
+  effects$ = [
+    // Effects
+    this.loadProducts$,
+    this.updateProduct$,
+    this.createProduct$,
+    this.deleteProduct$
+  ];
+
   constructor(
     private productService: ProductService
   ) {
     super('products');
-    this.init(reducer, initialState, [
-      // Effects
-      this.loadProducts$,
-      this.updateProduct$,
-      this.createProduct$,
-      this.deleteProduct$
-    ]);
+    this.init(reducer);
   }
 }
 
-export function getProductFeatureState(state: ProductState) {
-  console.log('selector getProductFeatureState');
-  return state;
-}
+const getProductFeatureState = createFeatureSelector('products');
 
 export const getShowProductCode = createSelector(
   getProductFeatureState,

@@ -5,7 +5,7 @@ import MiniStoreBase from './mini-store-base';
 
 export class MiniStore<StateType, ActionType extends Action> {
 
-  actions$ = MiniStoreBase.actions$;
+  effects$: Observable<ActionType>[] = [];
 
   constructor(
     private featureName: string
@@ -14,32 +14,20 @@ export class MiniStore<StateType, ActionType extends Action> {
   }
 
   init(
-    reducer: (state: StateType, action: ActionType) => StateType,
-    initialState: StateType,
-    effects$: Observable<ActionType>[] = []
+    reducer: (state: StateType, action: ActionType) => StateType
   ) {
 
     MiniStoreBase.addFeatureStore(this.featureName);
 
-    merge(MiniStoreBase.actions$, ...effects$).pipe(
+    merge(MiniStoreBase.actions$, ...this.effects$).pipe(
       tap((action => console.log('Action: ', action.type, action.payload))),
-      startWith(initialState),
-      scan<ActionType, StateType>(reducer),
+      scan<ActionType, StateType>(reducer, undefined),
       distinctUntilChanged(),
       tap(newState => {
         console.log('New State: ', newState);
         MiniStoreBase.updateState(newState, this.featureName);
       })
     ).subscribe(); // TODO get rid of subscription?
-  }
-
-  dispatch = (action: ActionType) => MiniStoreBase.dispatch(action);
-
-  select(mapFn: ((state: any) => any)) {
-    return MiniStoreBase.state$.pipe(
-      map(state => mapFn(state[this.featureName])),
-      distinctUntilChanged()
-    );
   }
 
   // TODO Add clean up logic ?
