@@ -8,7 +8,7 @@ import { MiniStore } from '../../mini-store';
 import { Product } from '../product';
 import { ProductService } from '../product.service';
 import {createFeatureSelector, createSelector, ofType} from 'src/app/mini-store.utils';
-import {actions$} from '../../mini-store-base';
+import Store, {actions$} from '../../mini-store-base';
 
 @Injectable({
   providedIn: 'root'
@@ -59,19 +59,18 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
     )
   );
 
-  effects$ = [
-    // Effects
-    this.loadProducts$,
-    this.updateProduct$,
-    this.createProduct$,
-    this.deleteProduct$
-  ];
-
   constructor(
     private productService: ProductService
   ) {
     super('products');
     this.init(reducer);
+
+    Store.addEffects([
+      this.loadProducts$,
+      this.updateProduct$,
+      this.createProduct$,
+      this.deleteProduct$
+    ]);
   }
 }
 

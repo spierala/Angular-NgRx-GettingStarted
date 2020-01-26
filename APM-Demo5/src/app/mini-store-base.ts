@@ -1,16 +1,28 @@
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, merge, Observable, Subject} from 'rxjs';
 import {Action} from './mini-store.utils';
-import {distinctUntilChanged, map} from 'rxjs/operators';
+import {distinctUntilChanged, map, switchMap, tap} from 'rxjs/operators';
 
 class MiniStoreBase {
+
   private actionsSource: Subject<Action> = new Subject();
-  actions$: Observable<any> = this.actionsSource.asObservable();
+  actions$: Observable<Action> = this.actionsSource.asObservable();
+
+  private effects$: BehaviorSubject<Observable<Action>[]> = new BehaviorSubject([]);
+  private effectActions: Observable<Action> = this.effects$.pipe(
+    switchMap(effects => merge(...effects)),
+  );
 
   private stateSource: BehaviorSubject<any> = new BehaviorSubject({});
   state$: Observable<any> = this.stateSource.asObservable().pipe(
     // tap(globalState => console.log('GlobalState', globalState)),
     // share() // TODO
   );
+
+  constructor() {
+    this.effectActions.pipe(
+      tap(action => this.dispatch(action))
+    ).subscribe();
+  }
 
   updateState(state, featureName) {
     const currentState = this.stateSource.getValue();
@@ -35,6 +47,10 @@ class MiniStoreBase {
     if (!currentState.hasOwnProperty(featureName)) {
       currentState[featureName] = {};
     }
+  }
+
+  addEffects(effects: Observable<Action>[]) {
+    this.effects$.next([...this.effects$.getValue(), ...effects]);
   }
 }
 

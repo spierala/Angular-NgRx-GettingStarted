@@ -1,11 +1,9 @@
 import {merge, Observable} from 'rxjs';
 import {distinctUntilChanged, map, scan, startWith, tap} from 'rxjs/operators';
 import {Action} from './mini-store.utils';
-import MiniStoreBase from './mini-store-base';
+import MiniStoreBase, {actions$} from './mini-store-base';
 
 export class MiniStore<StateType, ActionType extends Action> {
-
-  effects$: Observable<ActionType>[] = [];
 
   constructor(
     private featureName: string
@@ -19,7 +17,7 @@ export class MiniStore<StateType, ActionType extends Action> {
 
     MiniStoreBase.addFeatureStore(this.featureName);
 
-    merge(MiniStoreBase.actions$, ...this.effects$).pipe(
+    actions$.pipe(
       tap((action => console.log('Action: ', action.type, action.payload))),
       scan<ActionType, StateType>(reducer, undefined),
       distinctUntilChanged(),
