@@ -2,7 +2,7 @@ import {BehaviorSubject, merge, Observable, Subject} from 'rxjs';
 import {Action} from './mini-store.utils';
 import {distinctUntilChanged, map, switchMap, tap} from 'rxjs/operators';
 
-class MiniStoreBase {
+class MiniStore {
 
   private actionsSource: Subject<Action> = new Subject();
   actions$: Observable<Action> = this.actionsSource.asObservable();
@@ -13,7 +13,7 @@ class MiniStoreBase {
   );
 
   private stateSource: BehaviorSubject<any> = new BehaviorSubject({});
-  state$: Observable<any> = this.stateSource.asObservable().pipe(
+  private state$: Observable<any> = this.stateSource.asObservable().pipe(
     // tap(globalState => console.log('GlobalState', globalState)),
     // share() // TODO
   );
@@ -42,11 +42,15 @@ class MiniStoreBase {
     );
   }
 
-  addFeatureStore(featureName: string) {
+  addFeature(featureName: string) {
     const currentState = this.stateSource.getValue();
     if (!currentState.hasOwnProperty(featureName)) {
       currentState[featureName] = {};
     }
+  }
+
+  addEffect(effect: Observable<Action>) {
+    this.effects$.next([...this.effects$.getValue(), effect]);
   }
 
   addEffects(effects: Observable<Action>[]) {
@@ -55,7 +59,7 @@ class MiniStoreBase {
 }
 
 // Created once to initialize singleton
-const Store = new MiniStoreBase();
+const Store = new MiniStore();
 
 export default Store;
 export const actions$ = Store.actions$;

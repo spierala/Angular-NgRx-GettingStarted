@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import * as productActions from './products/state/product.actions';
-import Store from './mini-store-base';
+import {Component} from '@angular/core';
+import {getProducts, ProductStoreService} from './products/state/product-store.service';
+import {tap} from 'rxjs/operators';
 
 @Component({
   selector: 'pm-root',
@@ -9,8 +9,10 @@ import Store from './mini-store-base';
 })
 export class AppComponent {
   constructor(
-
+    private productStoreService: ProductStoreService
   ) {
-    Store.dispatch(new productActions.Load());
+    this.productStoreService.select(getProducts).pipe(
+      tap((data) => console.log('app products$', data))
+    ).subscribe();
   }
 }

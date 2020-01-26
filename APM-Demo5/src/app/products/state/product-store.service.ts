@@ -3,8 +3,8 @@ import { catchError, map, mergeMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { ProductState, reducer } from './product.reducer';
 import * as productActions from './product.actions';
-import { ProductActions, ProductActionTypes } from './product.actions';
-import { MiniStore } from '../../mini-store';
+import {Load, ProductActions, ProductActionTypes} from './product.actions';
+import { FeatureStore } from '../../feature-store';
 import { Product } from '../product';
 import { ProductService } from '../product.service';
 import {createFeatureSelector, createSelector, ofType} from 'src/app/mini-store.utils';
@@ -13,7 +13,7 @@ import Store, {actions$} from '../../mini-store-base';
 @Injectable({
   providedIn: 'root'
 })
-export class ProductStoreService extends MiniStore<ProductState, ProductActions> {
+export class ProductStoreService extends FeatureStore<ProductState, ProductActions> {
 
   // EFFECTS
   private loadProducts$: Observable<ProductActions> = actions$.pipe(
@@ -62,8 +62,7 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
   constructor(
     private productService: ProductService
   ) {
-    super('products');
-    this.init(reducer);
+    super('products', reducer);
 
     Store.addEffects([
       this.loadProducts$,
@@ -71,6 +70,8 @@ export class ProductStoreService extends MiniStore<ProductState, ProductActions>
       this.createProduct$,
       this.deleteProduct$
     ]);
+
+    this.dispatch(new Load());
   }
 }
 
@@ -119,12 +120,12 @@ export const getCurrentProduct = createSelector(
 
 export const getFirstProduct = createSelector(
   getProducts,
-  (products) => products[0]
+  (products) => products && products[0]
 );
 
 export const getProductById = (id: number) => createSelector(
   getProducts,
-  (products) => products.find(p => p.id === id)
+  (products) => products && products.find(p => p.id === id)
 );
 
 export const getError = createSelector(
