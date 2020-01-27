@@ -5,11 +5,11 @@ import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 
 import { takeWhile } from 'rxjs/operators';
-/* NgRx */
 import * as userActions from './state/user.actions';
-import { getMaskUserName, UserStoreService } from './state/user-store.service';
-import Store from '../mini-store-base';
+import { UserStoreService } from './state/user-store.service';
+import MiniStore from '../mini-store-base';
 import { Subscription } from 'rxjs';
+import { getMaskUserName } from './state';
 
 @Component({
   templateUrl: './login.component.html',
@@ -28,7 +28,7 @@ export class LoginComponent implements OnInit, OnDestroy {
               private router: Router) { }
 
   ngOnInit(): void {
-    this.sub = Store.select(getMaskUserName).pipe(
+    this.sub = MiniStore.select(getMaskUserName).pipe(
       takeWhile(() => this.componentActive)
     ).subscribe(
       maskUserName => this.maskUserName = maskUserName
@@ -45,7 +45,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   checkChanged(value: boolean): void {
-    Store.dispatch(new userActions.MaskUserName(value));
+    MiniStore.dispatch(new userActions.MaskUserName(value));
   }
 
   login(loginForm: NgForm): void {

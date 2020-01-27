@@ -1,7 +1,5 @@
 import { Product } from '../product';
-
-/* NgRx */
-import { Action } from '@ngrx/store';
+import { Action } from '../../mini-store.utils';
 
 export enum ProductActionTypes {
   ToggleProductCode = '[Product] Toggle Product Code',
@@ -43,7 +41,7 @@ export class InitializeCurrentProduct implements Action {
   readonly type = ProductActionTypes.InitializeCurrentProduct;
 }
 
-export class Load {
+export class Load implements Action {
   readonly type = ProductActionTypes.Load;
 }
 

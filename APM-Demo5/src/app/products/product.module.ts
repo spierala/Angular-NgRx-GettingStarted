@@ -25,7 +25,7 @@ const productRoutes: Routes = [
 })
 export class ProductModule {
   constructor(
-    private productStore: ProductStoreService
+    private productStore: ProductStoreService // Initializes feature state, do not remove!
   ) {
 
   }

@@ -1,10 +1,9 @@
-/* NgRx */
-import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { UserState } from './user.reducer';
+import { createFeatureSelector, createSelector } from '../../mini-store.utils';
 
 
 // Selector functions
-const getUserFeatureState = createFeatureSelector<UserState>('users');
+const getUserFeatureState = createFeatureSelector('users');
 
 export const getCurrentUser = createSelector(
   getUserFeatureState,

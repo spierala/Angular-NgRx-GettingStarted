@@ -60,11 +60,6 @@ class MiniStoreBase {
     }
   }
 
-  // createEffect(effect: Observable<Action>) {
-  //   console.log('createEffect', effect)
-  //   this.effects$.next([...this.effects$.getValue(), effect]);
-  // }
-
   addEffects(effects: Observable<Action>[]) {
     this.effects$.next([...this.effects$.getValue(), ...effects]);
   }
