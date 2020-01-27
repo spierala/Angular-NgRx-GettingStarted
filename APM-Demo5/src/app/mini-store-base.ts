@@ -6,7 +6,6 @@ class MiniStoreBase {
 
   private actionsSource: Subject<Action> = new Subject();
   actions$: Observable<Action> = this.actionsSource.asObservable().pipe(
-    tap((action) => console.log('actions$', action)),
     share()
   );
 
@@ -17,22 +16,14 @@ class MiniStoreBase {
 
   private stateSource: BehaviorSubject<any> = new BehaviorSubject({});
   private state$: Observable<any> = this.stateSource.asObservable().pipe(
-    tap(globalState => console.log('GlobalState', globalState)),
     publishReplay(1),
     refCount()
   );
 
   constructor() {
-    this.actions$.pipe(
-      tap(action => console.log('#1 normal action', action)),
-    ).subscribe()
-
     this.effectActions.pipe(
-      tap(action => console.log('#1 effect action', action)),
       tap(action => this.dispatch(action))
     ).subscribe();
-
-    console.log('MINI STORE BASE');
   }
 
   updateState(state, featureName) {

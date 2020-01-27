@@ -12,14 +12,14 @@ export class FeatureStore<StateType, ActionType extends Action> {
   ) {
     if (featureName && reducer) {
       MiniStore.addFeature(featureName);
-      console.log('MINI STORE READY', featureName);
+      console.log('MINI STORE READY', featureName); // TODO remove
 
       actions$.pipe(
-        tap((action => console.log(featureName.toUpperCase(), 'Action: ', action.type, action.payload))),
+        tap((action => console.log(featureName.toUpperCase(), 'Action: ', action.type, action.payload))), // TODO remove
         scan<ActionType, StateType>(reducer, undefined),
         distinctUntilChanged(),
         tap(newState => {
-          console.log(featureName.toUpperCase(), 'New State: ', newState);
+          console.log(featureName.toUpperCase(), 'New State: ', newState); // TODO remove
           MiniStore.updateState(newState, featureName);
         })
       ).subscribe(); // TODO get rid of subscription?
