@@ -1,24 +1,23 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
-import { mergeMap, map, catchError } from 'rxjs/operators';
+import { catchError, map, mergeMap } from 'rxjs/operators';
 
 import { ProductService } from '../product.service';
 import { Product } from '../product';
 
-/* NgRx */
-import { Action } from '@ngrx/store';
-import { Actions, Effect, ofType } from '@ngrx/effects';
 import * as productActions from './product.actions';
+import { actions$ } from '../../mini-store-base';
+import { Action, ofType } from '../../mini-store.utils';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class ProductEffects {
 
-  constructor(private productService: ProductService,
-              private actions$: Actions) { }
+  constructor(private productService: ProductService) { }
 
-  @Effect()
-  loadProducts$: Observable<Action> = this.actions$.pipe(
+  private loadProducts$: Observable<Action> = actions$.pipe(
     ofType(productActions.ProductActionTypes.Load),
     mergeMap(action =>
       this.productService.getProducts().pipe(
@@ -28,8 +27,7 @@ export class ProductEffects {
     )
   );
 
-  @Effect()
-  updateProduct$: Observable<Action> = this.actions$.pipe(
+  private updateProduct$: Observable<Action> = actions$.pipe(
     ofType(productActions.ProductActionTypes.UpdateProduct),
     map((action: productActions.UpdateProduct) => action.payload),
     mergeMap((product: Product) =>
@@ -40,8 +38,7 @@ export class ProductEffects {
     )
   );
 
-  @Effect()
-  createProduct$: Observable<Action> = this.actions$.pipe(
+  private createProduct$: Observable<Action> = actions$.pipe(
     ofType(productActions.ProductActionTypes.CreateProduct),
     map((action: productActions.CreateProduct) => action.payload),
     mergeMap((product: Product) =>
@@ -52,8 +49,7 @@ export class ProductEffects {
     )
   );
 
-  @Effect()
-  deleteProduct$: Observable<Action> = this.actions$.pipe(
+  private deleteProduct$: Observable<Action> = actions$.pipe(
     ofType(productActions.ProductActionTypes.DeleteProduct),
     map((action: productActions.DeleteProduct) => action.payload),
     mergeMap((productId: number) =>
@@ -63,4 +59,6 @@ export class ProductEffects {
       )
     )
   );
+
+  effects$: Observable<Action>[] = [this.loadProducts$, this.updateProduct$, this.createProduct$, this.deleteProduct$];
 }

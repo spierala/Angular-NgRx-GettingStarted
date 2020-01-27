@@ -1,11 +1,14 @@
-import {BehaviorSubject, merge, Observable, Subject} from 'rxjs';
-import {Action} from './mini-store.utils';
-import {distinctUntilChanged, map, switchMap, tap} from 'rxjs/operators';
+import { BehaviorSubject, merge, Observable, Subject } from 'rxjs';
+import { Action } from './mini-store.utils';
+import { distinctUntilChanged, map, publishReplay, refCount, share, switchMap, tap } from 'rxjs/operators';
 
-class MiniStore {
+class MiniStoreBase {
 
   private actionsSource: Subject<Action> = new Subject();
-  actions$: Observable<Action> = this.actionsSource.asObservable();
+  actions$: Observable<Action> = this.actionsSource.asObservable().pipe(
+    tap((action) => console.log('actions$', action)),
+    share()
+  );
 
   private effects$: BehaviorSubject<Observable<Action>[]> = new BehaviorSubject([]);
   private effectActions: Observable<Action> = this.effects$.pipe(
@@ -14,14 +17,22 @@ class MiniStore {
 
   private stateSource: BehaviorSubject<any> = new BehaviorSubject({});
   private state$: Observable<any> = this.stateSource.asObservable().pipe(
-    // tap(globalState => console.log('GlobalState', globalState)),
-    // share() // TODO
+    tap(globalState => console.log('GlobalState', globalState)),
+    publishReplay(1),
+    refCount()
   );
 
   constructor() {
+    this.actions$.pipe(
+      tap(action => console.log('#1 normal action', action)),
+    ).subscribe()
+
     this.effectActions.pipe(
+      tap(action => console.log('#1 effect action', action)),
       tap(action => this.dispatch(action))
     ).subscribe();
+
+    console.log('MINI STORE BASE');
   }
 
   updateState(state, featureName) {
@@ -49,9 +60,10 @@ class MiniStore {
     }
   }
 
-  addEffect(effect: Observable<Action>) {
-    this.effects$.next([...this.effects$.getValue(), effect]);
-  }
+  // createEffect(effect: Observable<Action>) {
+  //   console.log('createEffect', effect)
+  //   this.effects$.next([...this.effects$.getValue(), effect]);
+  // }
 
   addEffects(effects: Observable<Action>[]) {
     this.effects$.next([...this.effects$.getValue(), ...effects]);
@@ -59,7 +71,7 @@ class MiniStore {
 }
 
 // Created once to initialize singleton
-const Store = new MiniStore();
+const MiniStore = new MiniStoreBase();
 
-export default Store;
-export const actions$ = Store.actions$;
+export default MiniStore;
+export const actions$ = MiniStore.actions$;

@@ -1,6 +1,6 @@
-import { createFeatureSelector, createSelector } from '@ngrx/store';
 import * as fromRoot from '../../state/app.state';
 import * as fromProducts from './product.reducer';
+import { createFeatureSelector, createSelector } from '../../mini-store.utils';
 
 // Extends the app state to include the product feature.
 // This is required because products are lazy loaded.
@@ -10,7 +10,7 @@ export interface State extends fromRoot.State {
 }
 
 // Selector functions
-const getProductFeatureState = createFeatureSelector<fromProducts.ProductState>('products');
+const getProductFeatureState = createFeatureSelector('products');
 
 export const getShowProductCode = createSelector(
     getProductFeatureState,
